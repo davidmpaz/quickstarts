@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class CheckoutServiceApplication {
@@ -26,10 +27,12 @@ public class CheckoutServiceApplication {
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 		String uri = DAPR_HOST + ":" + DAPR_HTTP_PORT + "/v1.0/publish/" + PUBSUB_NAME + "/" + TOPIC;
+		Random rand = new Random();
 		for (int i = 0; i <= 10; i++) {
-			int orderId = i;
-			JSONObject obj = new JSONObject();
-			obj.put("orderId", orderId);
+            JSONObject obj = new JSONObject();
+			obj.put("orderId", i);
+			// processing time between 0 and 5 seconds
+			obj.put("secondsToProcess", rand.nextInt(5));
 
 			// Publish an event/message using Dapr PubSub via HTTP Post
 			HttpRequest request = HttpRequest.newBuilder()
@@ -39,7 +42,7 @@ public class CheckoutServiceApplication {
 					.build();
 
 			HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-			logger.info("Published data: {}", orderId);
+			logger.info("Published data: {}", i);
 			TimeUnit.MILLISECONDS.sleep(3000);
 		}
 	}

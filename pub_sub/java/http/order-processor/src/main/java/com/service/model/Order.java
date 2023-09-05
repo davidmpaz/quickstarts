@@ -10,4 +10,5 @@ import lombok.Setter;
 @Setter
 public class Order {
     private int orderId;
+    private int secondsToProcess;
 }

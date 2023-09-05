@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.TimeUnit;
+
 @RestController
 public class OrderProcessingServiceController {
     private static final Logger logger = LoggerFactory.getLogger(OrderProcessingServiceController.class);
@@ -29,8 +31,7 @@ public class OrderProcessingServiceController {
                 .route("orders")
                 .build();
         logger.info("Subscribed to Pubsubname {} and topic {}", "orderpubsub", "orders");
-        DaprSubscription[] arr = new DaprSubscription[]{daprSubscription};
-        return arr;
+        return new DaprSubscription[]{daprSubscription};
     }
 
     /**
@@ -40,8 +41,13 @@ public class OrderProcessingServiceController {
      * @return ResponseEntity Returns ResponseEntity.ok()
      */
     @PostMapping(path = "/orders", consumes = MediaType.ALL_VALUE)
-    public ResponseEntity<?> processOrders(@RequestBody SubscriptionData<Order> body) {
-        logger.info("Subscriber received: "+ body.getData().getOrderId());
+    public ResponseEntity<?> processOrders(@RequestBody SubscriptionData<Order> body) throws InterruptedException {
+        Order order = body.getData();
+        logger.info("Subscriber received: {} \t processed in: {}s", order.getOrderId(), order.getSecondsToProcess());
+
+        // simulate some working, seconds taken from random number coming in message
+        TimeUnit.SECONDS.sleep(order.getSecondsToProcess());
+
         return ResponseEntity.ok().build();
     }
 }
